@@ -16,3 +16,10 @@ Javni Sheet: https://docs.google.com/spreadsheets/d/1fDokMAGMrqvou6bKlyTDfBXcoeV
 Kolone koje aplikacija očekuje su: Naziv, Kategorija, Mod, Temperatura °C, Vrijeme, Okretanje / miješanje, Napomena, Status, Favorit, Datum testiranja.
 
 Statusi su ✅ Provjereno, 🟡 Za testiranje i 🔴 Ne preporučujemo. Aplikacija automatski izostavlja redove čiji naziv sadrži riječ slanina.
+
+## Nova funkcionalnost
+
+- Klik na recept otvara detalje.
+- Kolona `YouTube link` u kartici `Recepti` prikazuje YouTube player u detaljima.
+- Forma `Dodaj recept` je ugrađena u aplikaciju.
+- Forma koristi javni append-only Google Apps Script endpoint kada je `WRITE_ENDPOINT` podešen u `app.js`.
