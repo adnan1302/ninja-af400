@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#f4efe7"><meta name="description" content="Praktična Ninja AF400 kuharica sa provjerenim i testnim vremenima."><title>Ninja AF400 kuharica</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet"><link rel="stylesheet" href="styles.css">
+<style>
+.ingredients-block{margin:28px 0 8px}.ingredients-title{font-weight:700;font-size:1rem;margin:0 0 12px;color:#28392f}.ingredients-list{margin:0;padding-left:1.35rem;display:grid;gap:8px}.ingredients-list li{padding-left:4px;line-height:1.45}.ingredients-list li::marker{color:#db7653}
+</style>
 </head>
 <body>
 <header class="site-header"><div class="header-inner"><a class="brand" href="./" aria-label="Ninja AF400 kuharica, početna"><span class="brand-mark">AF</span><span><strong>Ninja AF400</strong><small>kuharica</small></span></a><button class="favorites-toggle" id="favoritesToggle" type="button" aria-pressed="false"><span>★</span> Moji favoriti <b id="favoriteCount">0</b></button></div></header>
@@ -12,8 +15,27 @@
 <div class="results-tools"><button class="add-recipe-button" id="addRecipeButton" type="button">＋ Dodaj recept</button></div>
 <section class="results-head"><div><p class="eyebrow">Tvoja baza</p><h2 id="resultsTitle">Svi recepti</h2></div><span id="resultCount" class="result-count"></span></section><section id="recipeGrid" class="recipe-grid" aria-live="polite"></section><div id="emptyState" class="empty-state" hidden><span>🍽️</span><h3>Nema takvih recepata</h3><p>Pokušaj sa drugim pojmom ili ukloni neki filter.</p></div>
 </main>
-<div class="modal-backdrop" id="detailModal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="detailTitle"><button class="modal-close" data-close-modal type="button" aria-label="Zatvori">×</button><p class="eyebrow" id="detailCategory"></p><h2 id="detailTitle"></h2><div class="detail-stats" id="detailStats"></div><p class="detail-note" id="detailNote"></p><div class="detail-youtube" id="detailYoutube"></div></div></div>
+<div class="modal-backdrop" id="detailModal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="detailTitle"><button class="modal-close" data-close-modal type="button" aria-label="Zatvori">×</button><p class="eyebrow" id="detailCategory"></p><h2 id="detailTitle"></h2><div class="detail-stats" id="detailStats"></div><div class="detail-note" id="detailNote"></div><div class="detail-youtube" id="detailYoutube"></div></div></div>
 <div class="modal-backdrop" id="addModal" hidden><div class="modal-card add-card" role="dialog" aria-modal="true" aria-labelledby="addTitle"><button class="modal-close" data-close-modal type="button" aria-label="Zatvori">×</button><p class="eyebrow">Nova stavka u bazi</p><h2 id="addTitle">Dodaj recept</h2><p class="form-intro">Novi recept se dodaje kao red u javni Google Sheet.</p><form id="addRecipeForm"><div class="form-grid"><label>Naziv recepta<input name="name" required></label><label>Kategorija<input name="category" placeholder="npr. Piletina" required></label><label>Mod<select name="mode"><option>Air Fry</option><option>Max Crisp</option><option>Roast</option><option>Bake</option><option>Reheat</option><option>Dehydrate</option></select></label><label>Temperatura °C<input name="temperature" inputmode="numeric" required></label><label>Vrijeme<input name="time" placeholder="npr. 12–15 min" required></label><label>Okretanje / miješanje<input name="turning" placeholder="npr. Okrenuti na pola" required></label></div><label>Napomena<textarea name="note" rows="3" required></textarea></label><div class="form-grid"><label>Status<select name="status"><option>🟡 Za testiranje</option><option>✅ Provjereno</option><option>❌ Ne preporučujemo</option></select></label><label>YouTube link <span class="optional">(opcionalno)</span><input name="youtube" type="url" placeholder="https://youtu.be/..."></label></div><p class="form-message" id="formMessage" role="status"></p><button class="submit-recipe" type="submit">Dodaj u kuharicu</button></form></div></div>
 <footer class="site-footer"><p><strong>Ninja AF400 kuharica</strong> · Vrijeme je početna preporuka — prilagodi količini, debljini i svom ukusu.</p><p>Javni izvor: <a href="https://docs.google.com/spreadsheets/d/1fDokMAGMrqvou6bKlyTDfBXcoeV32LXMykMvIxeMXOs/edit" target="_blank" rel="noreferrer">Google Sheet baza recepata ↗</a></p></footer>
 <script src="app.js"></script>
+<script>
+openDetail=function(name){
+ const r=recipes.find(x=>x.name===name);if(!r)return;
+ $("#detailCategory").textContent=r.category;
+ $("#detailTitle").textContent=r.name;
+ $("#detailStats").innerHTML='<div><b>'+esc(r.temperature)+'°</b><span>temperatura</span></div><div><b>'+esc(r.time)+'</b><span>vrijeme</span></div><div><b>'+esc(r.mode)+'</b><span>mod</span></div><div><b>'+esc(r.turning)+'</b><span>tokom pečenja</span></div>';
+ const note=String(r.note||"").trim(),detail=$("#detailNote");
+ if(/^Sastojci\s*:/i.test(note)){
+  const raw=note.replace(/^Sastojci\s*:\s*/i,"");
+  const items=raw.split(/\s*•\s*|\n+/).map(x=>x.trim().replace(/[.;]+$/,"" )).filter(Boolean);
+  detail.innerHTML='<div class="ingredients-block"><div class="ingredients-title">Sastojci</div><ul class="ingredients-list">'+items.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>';
+ }else{
+  detail.textContent=note;
+ }
+ const yt=normalizeYoutube(r.youtube);
+ $("#detailYoutube").innerHTML=yt?'<div class="video-label">Video recept</div><iframe src="https://www.youtube-nocookie.com/embed/'+yt+'" title="YouTube video za '+esc(r.name)+'" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>':'<div class="no-video">Za ovaj recept još nema YouTube videa.</div>';
+ $("#detailModal").hidden=false;document.body.classList.add("modal-open");
+};
+</script>
 </body></html>
